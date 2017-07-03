@@ -4,7 +4,7 @@ namespace :after_party do
     tasks = []
     if ENV['VERSION'] && ENV['VERSION'].present?
       requested_version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
-      Dir[AfterParty::TaskRecorder::FILE_MASK].collect do |filename|
+      Dir[AfterParty::TaskRecorder::FILE_MASK].each do |filename|
         recorder = AfterParty::TaskRecorder.new(filename)
         next if requested_version != recorder.timestamp
         tasks << "after_party:#{recorder.task_name}"
