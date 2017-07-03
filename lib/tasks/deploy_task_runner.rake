@@ -1,7 +1,17 @@
 namespace :after_party do
   desc "runs (in order) all pending after_party deployment tasks, if they have not run yet against the current db."
   task :run => :environment do
-    tasks = AfterParty::TaskRecorder.pending_files.map {|f| "after_party:#{f.task_name}"}
+    tasks = []
+    if ENV['VERSION'] && ENV['VERSION'].present?
+      requested_version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
+      Dir[AfterParty::TaskRecorder::FILE_MASK].collect do |filename|
+        recorder = AfterParty::TaskRecorder.new(filename)
+        next if requested_version != recorder.timestamp
+        tasks << "after_party:#{recorder.task_name}"
+      end
+    else
+      tasks = AfterParty::TaskRecorder.pending_files.map {|f| "after_party:#{f.task_name}"}
+    end
 
     tasks.each {|t| Rake::Task[t].invoke}
 
